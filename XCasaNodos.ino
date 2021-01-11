@@ -1,6 +1,9 @@
 #include "ESP8266WiFi.h"
 #include "PubSubClient.h"
-//al recoencat verificar estados!!!
+// TODO:
+// Al reconectar se debe actualizar el estado en la nuve si es que se cambio mientras no habia conexion.
+// ver de colocar un bandera para estado de ultima modificacion, local o web
+
 double hilo;
 double pendiente1;
 double pendiente2;
