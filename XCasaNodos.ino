@@ -4,7 +4,6 @@
 // Al reconectar se debe actualizar el estado en la nuve si es que se cambio mientras no habia conexion.
 // ver de colocar un bandera para estado de ultima modificacion, local o web
 
-double hilo;
 double pendiente1;
 double pendiente2;
 
@@ -63,6 +62,9 @@ void mqtt_loop() {
   }
   if (mqtt_client.connected()) {
     digitalWrite(LED_Az, HIGH);
+
+    // ACA COMPARAR ESTADOS SI EL ESRTADO DEL LED CAMBIO DURANTE LA DESCONECION,ENVIAR NUEVAMENTE
+    
     mqtt_client.loop();
   }
 }
@@ -100,16 +102,17 @@ void IRAM_ATTR Pulsado1() {
 
   if (millis() - startTime1 > timeThreshold)
   {
-
     if (b_estado1ant) {
       // off en circuito cerradoOn es circuito abierto!
       digitalWrite(LED_Ve, LOW);
+      
       b_estado1ant = false;
       if (mqtt_client.connected()) {
         mqtt_client.publish(String(s_encender01).c_str(), String(String("OFF")).c_str());
       }
     } else {
       digitalWrite(LED_Ve, HIGH);
+      
       b_estado1ant = true;
       if (mqtt_client.connected()) {
         mqtt_client.publish(String(s_encender01).c_str(), String(String("ON")).c_str());
@@ -124,12 +127,10 @@ void IRAM_ATTR Pulsado1() {
 void IRAM_ATTR Pulsado2() {
   if (millis() - startTime2 > timeThreshold)
   {
-
-
-
     if (b_estado2ant) {
       // off en circuito cerradoOn es circuito abierto!
       digitalWrite(LED_Am, LOW);
+      
       b_estado2ant = false;
       if (mqtt_client.connected()) {
         mqtt_client.publish(String(s_encender02).c_str(), String(String("OFF")).c_str());
@@ -137,6 +138,7 @@ void IRAM_ATTR Pulsado2() {
 
     } else {
       digitalWrite(LED_Am, HIGH);
+      
       b_estado2ant = true;
       if (mqtt_client.connected()) {
         mqtt_client.publish(String(s_encender02).c_str(), String(String("ON")).c_str());
@@ -153,23 +155,27 @@ void Reles() {
   //if (mqtt_client.connected()) {
   //digitalWrite(LED_Az, HIGH);
   if (String(s_orden01).equals(String("ON"))) {
-    digitalWrite(LED_Ve, LOW);
+    //digitalWrite(LED_Ve, LOW);
+    digitalWrite(LED_Ve, HIGH);
     b_estado1ant = true;
     mqtt_client.publish(String(s_estado01).c_str(), String(String("ON")).c_str());
 
   } else if (String(s_orden01).equals(String("OFF"))) {
-    digitalWrite(LED_Ve, HIGH);
+    //digitalWrite(LED_Ve, HIGH);
+    digitalWrite(LED_Ve, LOW);
     b_estado1ant = false;
     mqtt_client.publish(String(s_estado01).c_str(), String(String("OFF")).c_str());
   }
   s_orden01 = String("");
   if (String(s_orden02).equals(String("ON"))) {
-    digitalWrite(LED_Am, LOW);
+    //digitalWrite(LED_Am, LOW);
+    digitalWrite(LED_Am, HIGH);
     b_estado2ant = true;
     mqtt_client.publish(String(s_estado02).c_str(), String(String("ON")).c_str());
 
   } else if (String(s_orden02).equals(String("OFF"))) {
-    digitalWrite(LED_Am, HIGH);
+    //digitalWrite(LED_Am, HIGH);
+    digitalWrite(LED_Am, LOW);
     b_estado2ant = false;
     mqtt_client.publish(String(s_estado02).c_str(), String(String("OFF")).c_str());
   }
@@ -196,8 +202,12 @@ void setup()
 
   ESP.wdtDisable();
   digitalWrite(LED_Az, LOW);
-  digitalWrite(LED_Ve, HIGH);
-  digitalWrite(LED_Am, HIGH);
+
+//  digitalWrite(LED_Ve, HIGH);
+//  digitalWrite(LED_Am, HIGH);
+  digitalWrite(LED_Ve, LOW);
+  digitalWrite(LED_Am, LOW);
+
 
   // en estado ON es para que si estaba enncendi la luz antes de que se desconectara o se cortara la laimentaicon, se resetea a apagao.
   b_esReset = true;
