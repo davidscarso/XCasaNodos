@@ -27,7 +27,7 @@ const char mqtt_broker[] = "homeassistant";
 const int mqtt_port = 1883;
 const char mqtt_user[] = "admin";
 const char mqtt_pass[] = "eureka9";
-const char mqtt_clientid[] = "MQTTC001";
+const char mqtt_clientid[] = "MQTTC002";
 
 WiFiClient mqtt_wifiClient;
 PubSubClient mqtt_client(mqtt_wifiClient);
@@ -36,7 +36,7 @@ char mqtt_payload[64];
 
 const int LED_Az = D8;
 const int REL_1 = D7;
-const int REL_2 = D1;
+const int REL_2 = D1; // lio con este
 
 const int Pul1 = D5;
 const int Pul2 = D6;
@@ -47,7 +47,8 @@ long startTime1 = 0;
 long startTime2 = 0;
 
 void mqtt_setup() {
-  delay(10);;
+  delay(10);
+ 
   WiFi.begin(mqtt_wifi_ssid, mqtt_wifi_pass);
   while (WiFi.status() != WL_CONNECTED) delay(500);
   randomSeed(micros());
@@ -62,6 +63,7 @@ void mqtt_loop() {
     mqtt_client.connect(mqtt_clientid, mqtt_user, mqtt_pass);
     mqtt_subscribe();
   }
+
   if (mqtt_client.connected()) {
     digitalWrite(LED_Az, HIGH);
 
@@ -71,7 +73,7 @@ void mqtt_loop() {
   }
 }
 
-double mqtt_payload2double(unsigned char *_payload, int _length) {
+double mqtt_payload2double(unsigned char* _payload, int _length) {
   int i;
   for (i = 0; i < _length && i < 64; i++) {
     mqtt_payload[i] = _payload[i];
@@ -80,7 +82,7 @@ double mqtt_payload2double(unsigned char *_payload, int _length) {
   return atof(mqtt_payload);
 }
 
-String mqtt_payload2string(unsigned char *_payload, int _length) {
+String mqtt_payload2string(unsigned char* _payload, int _length) {
   int i;
   for (i = 0; i < _length && i < 64; i++) {
     mqtt_payload[i] = _payload[i];
@@ -91,8 +93,8 @@ String mqtt_payload2string(unsigned char *_payload, int _length) {
 void mqtt_callback(char* _topic, unsigned char* _payload, unsigned int _payloadlength) {
   double v = mqtt_payload2double(_payload, _payloadlength);
   String vt = mqtt_payload2string(_payload, _payloadlength);
-  if (String(_topic) == String(s_encender01))s_orden01 = vt;
-  if (String(_topic) == String(s_encender02))s_orden02 = vt;
+  if (String(_topic) == String(s_encender01)) s_orden01 = vt;
+  if (String(_topic) == String(s_encender02)) s_orden02 = vt;
 }
 
 void mqtt_subscribe() {
@@ -102,8 +104,7 @@ void mqtt_subscribe() {
 
 void IRAM_ATTR Pulsado1() {
 
-  if (millis() - startTime1 > timeThreshold)
-  {
+  if (millis() - startTime1 > timeThreshold) {
     if (b_estado1ant) {
       // off en circuito cerrado On es circuito abierto!
       digitalWrite(REL_1, HIGH);
@@ -127,8 +128,7 @@ void IRAM_ATTR Pulsado1() {
 }
 
 void IRAM_ATTR Pulsado2() {
-  if (millis() - startTime2 > timeThreshold)
-  {
+  if (millis() - startTime2 > timeThreshold) {
     if (b_estado2ant) {
       // off en circuito cerrado On es circuito abierto!
       digitalWrite(REL_2, HIGH);
@@ -150,7 +150,6 @@ void IRAM_ATTR Pulsado2() {
 
     startTime2 = millis();
   }
-
 }
 
 void Reles() {
@@ -167,6 +166,7 @@ void Reles() {
     mqtt_client.publish(String(s_estado01).c_str(), String(String("OFF")).c_str());
   }
   s_orden01 = String("");
+
   if (String(s_orden02).equals(String("ON"))) {
     digitalWrite(REL_2, LOW);
     b_estado2ant = true;
@@ -184,8 +184,7 @@ void Reles() {
   //}
 }
 
-void setup()
-{
+void setup() {
   pinMode(LED_Az, OUTPUT);
   pinMode(REL_1, OUTPUT);
   pinMode(REL_2, OUTPUT);
@@ -201,13 +200,15 @@ void setup()
   digitalWrite(LED_Az, LOW);
 
   digitalWrite(REL_1, HIGH);
-  digitalWrite(REL_2, HIGH);
+  // digitalWrite(REL_2, HIGH);
+  digitalWrite(REL_2, LOW);
+
 
   // en estado ON es para que si estaba enncendi la luz antes de que se desconectara o se cortara la laimentaicon, se resetea a apagao.
   b_esReset = true;
   b_estado1ant = true;
   b_estado2ant = true;
-  s_clienteNombre = String("MQTTC001");
+  s_clienteNombre = String("MQTTC002");
 
   s_encender01 = String(s_clienteNombre) + String("/pulsador01");
   s_encender02 = String(s_clienteNombre) + String("/pulsador02");
@@ -215,12 +216,9 @@ void setup()
   s_estado02 = String(s_clienteNombre) + String("/estado/pulsador02");
   s_orden01 = String("");
   s_orden02 = String("");
-
 }
 
-
-void loop()
-{
+void loop() {
   yield();
 
   mqtt_loop();
@@ -234,8 +232,6 @@ void loop()
   } else {
 
     Reles();
-
   }
   ESP.wdtFeed();
-
 }
