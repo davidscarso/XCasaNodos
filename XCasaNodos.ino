@@ -35,6 +35,7 @@ PubSubClient mqtt_client(mqtt_wifiClient);
 char mqtt_payload[64];
 
 const int LED_Az = D8;
+
 const int REL_1 = D7;
 const int REL_2 = D1;
 
