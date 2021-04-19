@@ -1,4 +1,4 @@
-#include "ESP8266WiFi.h"
+#include <ESP8266WiFi.h>
 #include "PubSubClient.h"
 
 // TODO:
@@ -12,9 +12,10 @@ String s_orden01;
 String s_orden02;
 String s_encender01;
 String s_encender02;
-String s_clienteNombre;
 String s_estado01;
 String s_estado02;
+
+String s_clienteNombre;
 
 boolean b_esReset;
 volatile boolean b_estado1ant;
@@ -192,7 +193,6 @@ void setup()
 
   pinMode(Pul1, INPUT_PULLUP);
   pinMode(Pul2, INPUT_PULLUP);
-
 
   attachInterrupt(digitalPinToInterrupt(Pul1), Pulsado1, RISING);
   attachInterrupt(digitalPinToInterrupt(Pul2), Pulsado2, RISING);
