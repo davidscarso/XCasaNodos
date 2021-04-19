@@ -1,4 +1,4 @@
-#include "ESP8266WiFi.h"
+#include <ESP8266WiFi.h>
 #include "PubSubClient.h"
 // TODO:
 // Al reconectar se debe actualizar el estado en la nueva si es que se cambio mientras no habia conexion.
@@ -11,6 +11,7 @@ String s_orden01;
 String s_orden02;
 String s_encender01;
 String s_encender02;
+
 String s_clienteNombre;
 String s_estado01;
 String s_estado02;
@@ -20,7 +21,8 @@ volatile boolean b_estado1ant;
 volatile boolean b_estado2ant;
 
 const char mqtt_wifi_ssid[] = "Fibertel Moco";
-const char mqtt_wifi_pass[] = "0049250550";
+const char mqtt_wifi_pass[] = "00492505506";
+
 const char mqtt_broker[] = "homeassistant";
 const int mqtt_port = 1883;
 const char mqtt_user[] = "admin";
