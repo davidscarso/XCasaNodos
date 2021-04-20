@@ -27,7 +27,7 @@ const char mqtt_broker[] = "homeassistant";
 const int mqtt_port = 1883;
 const char mqtt_user[] = "admin";
 const char mqtt_pass[] = "3UreK49";
-const char mqtt_clientid[] = "MQTTC001";
+const char mqtt_clientid[] = "MQTTC003";
 
 WiFiClient mqtt_wifiClient;
 PubSubClient mqtt_client(mqtt_wifiClient);
@@ -208,7 +208,7 @@ void setup()
   b_esReset = true;
   b_estado1ant = true;
   b_estado2ant = true;
-  s_clienteNombre = String("MQTTC001");
+  s_clienteNombre = String("MQTTC003");
 
   s_encender01 = String(s_clienteNombre) + String("/pulsador01");
   s_encender02 = String(s_clienteNombre) + String("/pulsador02");
