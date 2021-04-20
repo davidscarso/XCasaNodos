@@ -26,7 +26,7 @@ const char mqtt_wifi_pass[] = "00492505506";
 const char mqtt_broker[] = "homeassistant";
 const int mqtt_port = 1883;
 const char mqtt_user[] = "admin";
-const char mqtt_pass[] = "eureka9";
+const char mqtt_pass[] = "3UreK49";
 const char mqtt_clientid[] = "MQTTC001";
 
 WiFiClient mqtt_wifiClient;
