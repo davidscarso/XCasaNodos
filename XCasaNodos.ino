@@ -1,13 +1,16 @@
 #include <ESP8266WiFi.h>
 #include "PubSubClient.h"
 
-// TODO:
-// Al reconectar se debe actualizar el estado en la nueva si es que se cambio mientras no habia conexion.
-// ver de colocar un bandera para estado de ultima modificacion, local o web
+//GPIO0->0->FLASH
+//GPIO1->TX->1
+//GPIO2->2
+//GPIO3->RX->3
+//pinMode(3, OUTPUT);
+//pinMode(1, OUTPUT);
+//pinMode(0, OUTPUT);
+//pinMode(2, OUTPUT);
 
-//new: se cambiar  ala placa sp-01 y este sera el nodo 4
 double pendiente1;
-double pendiente2;
 
 String s_orden01;
 String s_encender01;
@@ -16,7 +19,7 @@ String s_estado01;
 String s_clienteNombre;
 
 boolean b_esReset;
-volatile boolean b_estado1ant;
+boolean b_estado1ant;
 
 const char mqtt_wifi_ssid[] = "Fibertel Moco";
 const char mqtt_wifi_pass[] = "00492505506";
@@ -31,14 +34,14 @@ PubSubClient mqtt_client(mqtt_wifiClient);
 
 char mqtt_payload[64];
 
-const int LED_Az = LED_BUILTIN;// debe se el (1)
+const int LED_Az = LED_BUILTIN;// Herramientas/builtin led: debe ser el 1 para sp1 y 2 para sp-1s
 
 const int REL_1 = 0;
-//const int Pul1 = D5;
+const int Pul1 = 2; //OJO que active el Pulsador!!!
 
 //para contra efecto rebote o DEBOUNCE
-const int timeThreshold = 200;
-long startTime1 = 0;
+const unsigned int timeThreshold = 200;
+unsigned long startTime1 = 0;
 
 void mqtt_setup() {
   delay(10);
@@ -58,9 +61,6 @@ void mqtt_loop() {
   }
   if (mqtt_client.connected()) {
     digitalWrite(LED_Az, LOW);
-
-    // ACA COMPARAR ESTADOS SI EL ESTADO DEL LED CAMBIO DURANTE LA DESCONECION, ENVIAR NUEVAMENTE
-
     mqtt_client.loop();
   }
 }
@@ -92,29 +92,35 @@ void mqtt_subscribe() {
   mqtt_client.subscribe(String(s_encender01).c_str());
 }
 
-void IRAM_ATTR Pulsado1() {
-
+void Pulsado1() {
+  // read the state of the switch into a local variable:
+  boolean b_estado1 = digitalRead(Pul1);
+  
   if (millis() - startTime1 > timeThreshold)
   {
-    if (b_estado1ant) {
-      // off en circuito cerrado On es circuito abierto!
-      digitalWrite(REL_1, HIGH);
+    if (!b_estado1) {
+      
+      // solosi pulse el boton, en este caso con valor 0 inicio el tongle o intercambio de encendido por apagado
+      if (b_estado1ant) {
+        // off en circuito cerrado On es circuito abierto!
+        digitalWrite(REL_1, HIGH);
 
-      b_estado1ant = false;
-      if (mqtt_client.connected()) {
-        mqtt_client.publish(String(s_encender01).c_str(), String(String("OFF")).c_str());
-      }
-    } else {
-      digitalWrite(REL_1, LOW);
+        b_estado1ant = false;
+        if (mqtt_client.connected()) {
+          mqtt_client.publish(String(s_encender01).c_str(), String(String("OFF")).c_str());
+        }
+      } else {
+        digitalWrite(REL_1, LOW);
 
-      b_estado1ant = true;
-      if (mqtt_client.connected()) {
-        mqtt_client.publish(String(s_encender01).c_str(), String(String("ON")).c_str());
+        b_estado1ant = true;
+        if (mqtt_client.connected()) {
+          mqtt_client.publish(String(s_encender01).c_str(), String(String("ON")).c_str());
+        }
       }
+      s_orden01 = String("");
+
+      startTime1 = millis();
     }
-    s_orden01 = String("");
-
-    startTime1 = millis();
   }
 }
 
@@ -144,12 +150,11 @@ void setup()
   pinMode(REL_1, OUTPUT);
   mqtt_setup();
 
-  //pinMode(Pul1, INPUT_PULLUP);
-  //attachInterrupt(digitalPinToInterrupt(Pul1), Pulsado1, RISING);
+  pinMode(Pul1, INPUT);
+  // attachInterrupt(digitalPinToInterrupt(Pul1), Pulsado1, RISING);
 
-  ESP.wdtDisable();
+  // ESP.wdtDisable();
   digitalWrite(LED_Az, HIGH);
-
   digitalWrite(REL_1, HIGH);
 
   // en estado ON es para que si estaba enncendi la luz antes de que se desconectara o se cortara la laimentaicon, se resetea a apagao.
@@ -170,16 +175,15 @@ void loop()
 
   mqtt_loop();
   if (b_esReset) {
+    //si se conecta luego de un corte de alimentacion
     if (mqtt_client.connected()) {
       mqtt_client.publish(String(s_encender01).c_str(), String(String("OFF")).c_str());
     }
     b_esReset = false;
-
   } else {
-
     Reles();
-
+    Pulsado1();
   }
-  ESP.wdtFeed();
 
+  //ESP.wdtFeed();
 }
