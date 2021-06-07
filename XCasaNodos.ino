@@ -1,3 +1,8 @@
+/*
+   Codigo solopara ESP01
+   no tiene watch dog
+   no tiene interupciones
+*/
 #include <ESP8266WiFi.h>
 #include "PubSubClient.h"
 
@@ -19,7 +24,8 @@ String s_estado01;
 String s_clienteNombre;
 
 boolean b_esReset;
-boolean b_estado1ant;
+
+volatile boolean b_estado1ant;
 
 const char mqtt_wifi_ssid[] = "Fibertel Moco";
 const char mqtt_wifi_pass[] = "00492505506";
@@ -92,41 +98,7 @@ void mqtt_subscribe() {
   mqtt_client.subscribe(String(s_encender01).c_str());
 }
 
-void Pulsado1() {
-  // read the state of the switch into a local variable:
-  boolean b_estado1 = digitalRead(Pul1);
-  
-  if (millis() - startTime1 > timeThreshold)
-  {
-    if (!b_estado1) {
-      
-      // solosi pulse el boton, en este caso con valor 0 inicio el tongle o intercambio de encendido por apagado
-      if (b_estado1ant) {
-        // off en circuito cerrado On es circuito abierto!
-        digitalWrite(REL_1, HIGH);
-
-        b_estado1ant = false;
-        if (mqtt_client.connected()) {
-          mqtt_client.publish(String(s_encender01).c_str(), String(String("OFF")).c_str());
-        }
-      } else {
-        digitalWrite(REL_1, LOW);
-
-        b_estado1ant = true;
-        if (mqtt_client.connected()) {
-          mqtt_client.publish(String(s_encender01).c_str(), String(String("ON")).c_str());
-        }
-      }
-      s_orden01 = String("");
-
-      startTime1 = millis();
-    }
-  }
-}
-
 void Reles() {
-  //if (mqtt_client.connected()) {
-  //digitalWrite(LED_Az, LOW);
   if (String(s_orden01).equals(String("ON"))) {
     digitalWrite(REL_1, LOW);
     b_estado1ant = true;
@@ -138,10 +110,6 @@ void Reles() {
     mqtt_client.publish(String(s_estado01).c_str(), String(String("OFF")).c_str());
   }
   s_orden01 = String("");
-
-  //} else {
-  // digitalWrite(LED_Az, HIGH);
-  //}
 }
 
 void setup()
@@ -150,10 +118,6 @@ void setup()
   pinMode(REL_1, OUTPUT);
   mqtt_setup();
 
-  pinMode(Pul1, INPUT);
-  // attachInterrupt(digitalPinToInterrupt(Pul1), Pulsado1, RISING);
-
-  // ESP.wdtDisable();
   digitalWrite(LED_Az, HIGH);
   digitalWrite(REL_1, HIGH);
 
@@ -182,8 +146,5 @@ void loop()
     b_esReset = false;
   } else {
     Reles();
-    Pulsado1();
   }
-
-  //ESP.wdtFeed();
 }
